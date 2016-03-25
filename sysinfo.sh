@@ -6,7 +6,7 @@
 #--- [ OS ] ---------------------------
 host=`uname -n`
 os=`uname -sr`
-uptime=`uptime | rev | cut -d "," -f 5-| rev | cut -d "p" -f 2- | sed 's/^ *//' | sed 's/  */ /g'`
+uptime=`uptime | sed -e 's/[ ][ ]*/ /g;s/ [0-9:]* up \(.*\), [0-9]* users.*/\1/'`
 
 #--- [ MEMORY ] -----------------------
 mem_total=`cat /proc/meminfo | grep -i MemTotal | awk '{printf "%d",$2/1024;}'`
