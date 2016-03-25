@@ -19,7 +19,7 @@ swap_used=`echo ${swap_total} ${swap_free} | awk '{printf "%d",$1-$2;}'`
 
 #--- [ CPU ] --------------------------
 cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/^.*: //'`
-if [ x"${cpu}" == "x" ]; then
+if [ -z "${cpu}" ]; then
 	# fallback
 	cpu=`uname -p`
 fi
