@@ -23,7 +23,7 @@ if [ -z "${cpu}" ]; then
 	# fallback
 	cpu=`uname -p`
 fi
-cpu_speed=`cat /proc/cpuinfo | head -n 7 | tail -n 1 | cut -d ":" -f 2 | cut -d "." -f 1 | sed 's/^ *//'`
+cpu_speed=`cat /proc/cpuinfo | grep '^cpu MHz' | head -n 1 | cut -f2 -d':' | cut -c2- | cut -f1 -d'.'`
 cpu_load=` cat /proc/loadavg | cut -d " " -f 1 | sed 's/,//'`
 
 # Detect frequency scaler
