@@ -45,19 +45,36 @@ if [ -x `which lspci` ]; then
 	vga=`lspci | grep VGA | cut -d ":" -f 3 | sed 's/ *(rev.*//' | sed 's/^ *//' | sed 's/^.*\[//' | sed 's/\].*//'`
 fi
 
+case "${1}" in
+	'-l'|'--long')
+
 #---[ PRINT LONG VERSION ]-------------
-#echo "[system] ${os} uptime: ${uptime}"
-#echo "[cpu]    ${cpu} ${cpu_speed} Mhz"
-#echo "[memory] ${mem_total}Mib total ${mem_app} Mb used ${mem_free}Mb free ${mem_buffers}Mib buffers ${mem_cache}Mb cache"
-#echo "[swap]   ${swap_total}Mib total ${swap_used} Mb used ${swap_free}Mib free"
-#echo "[disk]   ${disk_size} Gib total ${disk_used} Gib used ${disk_free} Gib free"
+
+		vga_line=''
+		if [ ! -z "${vga}" ]; then
+			vga_line="[vga]    ${vga}"
+		fi
+
+		grep -v '^$' <<-EOF
+		[host]   ${host}
+		[system] ${os}, uptime: ${uptime}, load: ${cpu_load}
+		[cpu]    ${cpu}, ${cpu_speed} Mhz
+		${vga_line}
+		[memory] ${mem_total} Mib total, ${mem_used} Mib used, ${mem_free} Mib free
+		[swap]   ${swap_total} Mib total, ${swap_used} Mb used, ${swap_free} Mib free
+		[disk]   ${disk_size} Gib total, ${disk_used} Gib used, ${disk_free} Gib free
+		EOF
+
+		exit
+	;;
+esac
 
 #--- [ PRINT SHORT VERSION ]----------
 
 echo -n "[${host}]"
 echo -n "[${os}]"
 echo -n "[${cpu}]"
-if [  "x${vga}" != "x" ]; then
+if [ ! -z "${vga}" ]; then
 	echo -n "[${vga}]"
 fi
 echo -n "[Memory used: ${mem_used}/${mem_total} Mib]"
