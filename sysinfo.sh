@@ -34,9 +34,7 @@ if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq ]; then
 fi
 
 #---[ HD ] ----------------------------
-#sua=`df  -l -x tmpfs  -x devtmpfs | tail -n +1 | awk 'BEGIN {s=0; u=0; a=0;} {s=s+$2; u=u+$3; a=a+$4} END { s=s/1048576; u=u/1048576; a=a/1048576; printf "%d %d %d",s,u,a;}'`
-disk_fs=`cat /proc/filesystems | grep -v nodev | sed 's/\t//g' | xargs | sed 's/ /,/g'`
-sua=`df  -l -x tmpfs  -x devtmpfs -x devtmpfs --total | tail -n 1`
+sua=`grep 'nodev' '/proc/filesystems' | sed -e 's/nodev\t/-x /' | xargs df --local --total | tail -n 1`
 disk_size=`echo $sua | awk '{printf "%d",$2/1048576;}'`;
 disk_used=`echo $sua | awk '{printf "%d",$3/1048576;}'`;
 disk_free=`echo $sua | awk '{printf "%d",$4/1048576;}'`;
