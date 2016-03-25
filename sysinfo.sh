@@ -18,7 +18,7 @@ swap_free=`cat /proc/meminfo | grep -i SwapFree | awk '{printf "%d",$2/1024;}'`
 swap_used=`echo ${swap_total} ${swap_free} | awk '{printf "%d",$1-$2;}'`
 
 #--- [ CPU ] --------------------------
-cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/^.*: //'`
+cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/[ ][ ]*/ /g;s/^.*: //' | sed -e 's/ @ .*//'`
 if [ -z "${cpu}" ]; then
 	# fallback
 	cpu=`uname -p`
@@ -73,7 +73,7 @@ esac
 
 echo -n "[${host}]"
 echo -n "[${os}]"
-echo -n "[${cpu}]"
+echo -n "[${cpu} @ ${cpu_speed} MHz]"
 if [ ! -z "${vga}" ]; then
 	echo -n "[${vga}]"
 fi
