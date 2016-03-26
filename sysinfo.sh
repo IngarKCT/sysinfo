@@ -54,42 +54,49 @@ if [ -x `which lspci` ]; then
 	gpu="${gpu_vendor} ${gpu_model}"
 fi
 
+#---[ OUTPUT ]------------------------
+
 case "${1}" in
 	'-l'|'--long')
 
-#---[ PRINT LONG VERSION ]-------------
+		#---[ LONG VERSION ]-- 
 
 		gpu_line=''
 		if [ ! -z "${gpu}" ]; then
 			gpu_line="[gpu]    ${gpu}"
 		fi
 
+		# output until EOF, strip leading TAB characters and empty lines
 		grep -v '^$' <<-EOF
 		[host]   ${host}
 		[system] ${os}, uptime: ${uptime}, load: ${cpu_load}
 		[cpu]    ${cpu}${cpu_count_notice}, ${cpu_speed} Mhz
 		${gpu_line}
-		[memory] ${mem_total} Mib total, ${mem_used} Mib used, ${mem_free} Mib free
-		[swap]   ${swap_total} Mib total, ${swap_used} Mb used, ${swap_free} Mib free
-		[disk]   ${disk_size} Gib total, ${disk_used} Gib used, ${disk_free} Gib free
+		[memory] ${mem_total} MiB total, ${mem_used} MiB used, ${mem_free} MiB free
+		[swap]   ${swap_total} MiB total, ${swap_used} MiB used, ${swap_free} MiB free
+		[disk]   ${disk_size} GiB total, ${disk_used} GiB used, ${disk_free} GiB free
 		EOF
+		;;
+	*)
+		#---[ SHORT VERSION ]-
+		
+		gpu_line=''
+		if [ ! -z "${gpu}" ]; then
+			gpu_line="[${gpu}]"
+		fi
 
-		exit
-	;;
+		# output until EOF, strip TAB characters
+		tr -d "\t" <<-EOF
+		[${host}]\
+		[${os}]\
+		[${cpu}${cpu_count_notice} @ ${cpu_speed} MHz]\
+		${gpu_line}\
+		[Memory used: ${mem_used}/${mem_total} MiB]\
+		[Swap used: ${swap_used}/${swap_total} MiB]\
+		[Disk used: ${disk_used}/${disk_size} GiB]\
+		[Load ${cpu_load}]\
+		[Uptime ${uptime}]
+		EOF
+		;;
 esac
-
-#--- [ PRINT SHORT VERSION ]----------
-
-echo -n "[${host}]"
-echo -n "[${os}]"
-echo -n "[${cpu}${cpu_count_notice} @ ${cpu_speed} MHz]"
-if [ ! -z "${gpu}" ]; then
-	echo -n "[${gpu}]"
-fi
-echo -n "[Memory used: ${mem_used}/${mem_total} Mib]"
-echo -n "[Swap used: ${swap_used}/${swap_total} Mib]"
-echo -n "[Disk used: ${disk_used}/${disk_size} Gib]"
-echo -n "[Load ${cpu_load}]"
-echo -n "[Uptime ${uptime}]"
-echo ""
 
