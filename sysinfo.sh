@@ -18,13 +18,19 @@ swap_free=`cat /proc/meminfo | grep -i SwapFree | awk '{printf "%d",$2/1024;}'`
 swap_used=`echo ${swap_total} ${swap_free} | awk '{printf "%d",$1-$2;}'`
 
 #--- [ CPU ] --------------------------
-cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/^.*: //'`
+cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/[ ][ ]*/ /g;s/^.*: //' | sed -e 's/ @ .*//' | sed -e 's/ [A-Za-z]*[ -]Core Processor//' | sed -e 's/([Tt][Mm])//;s/([Rr])//'`
 if [ -z "${cpu}" ]; then
 	# fallback
 	cpu=`uname -p`
 fi
-cpu_speed=`cat /proc/cpuinfo | head -n 7 | tail -n 1 | cut -d ":" -f 2 | cut -d "." -f 1 | sed 's/^ *//'`
+cpu_speed=`cat /proc/cpuinfo | grep '^cpu MHz' | head -n 1 | cut -f2 -d':' | cut -c2- | cut -f1 -d'.'`
 cpu_load=` cat /proc/loadavg | cut -d " " -f 1 | sed 's/,//'`
+
+cpu_count=`grep '^processor' /proc/cpuinfo | wc -l`
+if [ "${cpu_count}" -gt 1 ]
+then
+	cpu_count_notice=" * ${cpu_count} cores"
+fi
 
 # Detect frequency scaler
 if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq ]; then
@@ -40,25 +46,45 @@ disk_used=`echo $sua | awk '{printf "%d",$3/1048576;}'`;
 disk_free=`echo $sua | awk '{printf "%d",$4/1048576;}'`;
 
 #---[ VGA ] ---------------------------
-vga=""
+gpu=''
 if [ -x `which lspci` ]; then
-	vga=`lspci | grep VGA | cut -d ":" -f 3 | sed 's/ *(rev.*//' | sed 's/^ *//' | sed 's/^.*\[//' | sed 's/\].*//'`
+	gpu_slot=`lspci -mm | grep 'VGA' | head -n 1 | cut -f1 -d' '`
+	gpu_vendor=`lspci -s "${gpu_slot}" -mm -v | grep '^Vendor' | sed -e 's/Vendor:\t//' | sed -e 's/.*[ ]\[//;s/\].*//' | sed -e 's/, Inc.//;s/ Corporation//;s/ Co.//;s/,Ltd.//'`
+	gpu_model=`lspci -s "${gpu_slot}" -mm -v | grep '^Device' | sed -e 's/Device:\t//' | sed -e 's/.*[ ]\[//;s/\].*//'`
+	gpu="${gpu_vendor} ${gpu_model}"
 fi
 
+case "${1}" in
+	'-l'|'--long')
+
 #---[ PRINT LONG VERSION ]-------------
-#echo "[system] ${os} uptime: ${uptime}"
-#echo "[cpu]    ${cpu} ${cpu_speed} Mhz"
-#echo "[memory] ${mem_total}Mib total ${mem_app} Mb used ${mem_free}Mb free ${mem_buffers}Mib buffers ${mem_cache}Mb cache"
-#echo "[swap]   ${swap_total}Mib total ${swap_used} Mb used ${swap_free}Mib free"
-#echo "[disk]   ${disk_size} Gib total ${disk_used} Gib used ${disk_free} Gib free"
+
+		gpu_line=''
+		if [ ! -z "${gpu}" ]; then
+			gpu_line="[gpu]    ${gpu}"
+		fi
+
+		grep -v '^$' <<-EOF
+		[host]   ${host}
+		[system] ${os}, uptime: ${uptime}, load: ${cpu_load}
+		[cpu]    ${cpu}${cpu_count_notice}, ${cpu_speed} Mhz
+		${gpu_line}
+		[memory] ${mem_total} Mib total, ${mem_used} Mib used, ${mem_free} Mib free
+		[swap]   ${swap_total} Mib total, ${swap_used} Mb used, ${swap_free} Mib free
+		[disk]   ${disk_size} Gib total, ${disk_used} Gib used, ${disk_free} Gib free
+		EOF
+
+		exit
+	;;
+esac
 
 #--- [ PRINT SHORT VERSION ]----------
 
 echo -n "[${host}]"
 echo -n "[${os}]"
-echo -n "[${cpu}]"
-if [  "x${vga}" != "x" ]; then
-	echo -n "[${vga}]"
+echo -n "[${cpu}${cpu_count_notice} @ ${cpu_speed} MHz]"
+if [ ! -z "${gpu}" ]; then
+	echo -n "[${gpu}]"
 fi
 echo -n "[Memory used: ${mem_used}/${mem_total} Mib]"
 echo -n "[Swap used: ${swap_used}/${swap_total} Mib]"
