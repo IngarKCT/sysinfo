@@ -18,7 +18,7 @@ swap_free=`cat /proc/meminfo | grep -i SwapFree | awk '{printf "%d",$2/1024;}'`
 swap_used=`echo ${swap_total} ${swap_free} | awk '{printf "%d",$1-$2;}'`
 
 #--- [ CPU ] --------------------------
-cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/[ ][ ]*/ /g;s/^.*: //' | sed -e 's/ @ .*//' | sed -e 's/ [A-Za-z]*[ -]Core Processor//'`
+cpu=`cat /proc/cpuinfo | grep "model name" | head -n 1 | sed 's/[ ][ ]*/ /g;s/^.*: //' | sed -e 's/ @ .*//' | sed -e 's/ [A-Za-z]*[ -]Core Processor//' | sed -e 's/([Tt][Mm])//;s/([Rr])//'`
 if [ -z "${cpu}" ]; then
 	# fallback
 	cpu=`uname -p`
