@@ -46,9 +46,12 @@ disk_used=`echo $sua | awk '{printf "%d",$3/1048576;}'`;
 disk_free=`echo $sua | awk '{printf "%d",$4/1048576;}'`;
 
 #---[ VGA ] ---------------------------
-vga=""
+gpu=''
 if [ -x `which lspci` ]; then
-	vga=`lspci | grep VGA | cut -d ":" -f 3 | sed 's/ *(rev.*//' | sed 's/^ *//' | sed 's/^.*\[//' | sed 's/\].*//'`
+	gpu_slot=`lspci -mm | grep 'VGA' | head -n 1 | cut -f1 -d' '`
+	gpu_vendor=`lspci -s "${gpu_slot}" -mm -v | grep '^Vendor' | sed -e 's/Vendor:\t//' | sed -e 's/.*[ ]\[//;s/\].*//'`
+	gpu_model=`lspci -s "${gpu_slot}" -mm -v | grep '^Device' | sed -e 's/Device:\t//' | sed -e 's/.*[ ]\[//;s/\].*//'`
+	gpu="${gpu_vendor} ${gpu_model}"
 fi
 
 case "${1}" in
@@ -56,16 +59,16 @@ case "${1}" in
 
 #---[ PRINT LONG VERSION ]-------------
 
-		vga_line=''
-		if [ ! -z "${vga}" ]; then
-			vga_line="[vga]    ${vga}"
+		gpu_line=''
+		if [ ! -z "${gpu}" ]; then
+			gpu_line="[gpu]    ${gpu}"
 		fi
 
 		grep -v '^$' <<-EOF
 		[host]   ${host}
 		[system] ${os}, uptime: ${uptime}, load: ${cpu_load}
 		[cpu]    ${cpu}${cpu_count_notice}, ${cpu_speed} Mhz
-		${vga_line}
+		${gpu_line}
 		[memory] ${mem_total} Mib total, ${mem_used} Mib used, ${mem_free} Mib free
 		[swap]   ${swap_total} Mib total, ${swap_used} Mb used, ${swap_free} Mib free
 		[disk]   ${disk_size} Gib total, ${disk_used} Gib used, ${disk_free} Gib free
@@ -80,8 +83,8 @@ esac
 echo -n "[${host}]"
 echo -n "[${os}]"
 echo -n "[${cpu}${cpu_count_notice} @ ${cpu_speed} MHz]"
-if [ ! -z "${vga}" ]; then
-	echo -n "[${vga}]"
+if [ ! -z "${gpu}" ]; then
+	echo -n "[${gpu}]"
 fi
 echo -n "[Memory used: ${mem_used}/${mem_total} Mib]"
 echo -n "[Swap used: ${swap_used}/${swap_total} Mib]"
