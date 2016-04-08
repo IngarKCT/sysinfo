@@ -6,7 +6,7 @@
 #--- [ OS ] ---------------------------
 host=`uname -n`
 os=`uname -sr`
-uptime=`uptime | sed -e 's/[ ][ ]*/ /g;s/ [0-9:]* up \(.*\), [0-9]* users.*/\1/'`
+uptime=`uptime | sed -e 's/[ ][ ]*/ /g;s/ [0-9:]* up \(.*\), [0-9]* user.*/\1/'`
 
 #--- [ MEMORY ] -----------------------
 mem_total=`cat /proc/meminfo | grep -i MemTotal | awk '{printf "%d",$2/1024;}'`
@@ -47,7 +47,7 @@ disk_free=`echo $sua | awk '{printf "%d",$4/1048576;}'`;
 
 #---[ VGA ] ---------------------------
 gpu=''
-if [ -x `which lspci` ]; then
+if which lspci 2>/dev/null; then
 	gpu_slot=`lspci -mm | grep 'VGA' | head -n 1 | cut -f1 -d' '`
 	gpu_vendor=`lspci -s "${gpu_slot}" -mm -v | grep '^Vendor' | sed -e 's/Vendor:\t//' | sed -e 's/.*[ ]\[//;s/\].*//' | sed -e 's/, Inc.//;s/ Corporation//;s/ Co.//;s/,Ltd.//'`
 	gpu_model=`lspci -s "${gpu_slot}" -mm -v | grep '^Device' | sed -e 's/Device:\t//' | sed -e 's/.*[ ]\[//;s/\].*//'`
