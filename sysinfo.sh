@@ -48,10 +48,7 @@ disk_free=`echo $sua | awk '{printf "%d",$4/1048576;}'`;
 #---[ VGA ] ---------------------------
 gpu=''
 if which lspci >/dev/null 2>/dev/null; then
-	gpu_slot=`lspci -mm | grep 'VGA' | head -n 1 | cut -f1 -d' '`
-	gpu_vendor=`lspci -s "${gpu_slot}" -mm -v | grep '^Vendor' | sed -e 's/Vendor:\t//' | sed -e 's/.*[ ]\[//;s/\].*//' | sed -e 's/, Inc.//;s/ Corporation//;s/ Co.//;s/,Ltd.//'`
-	gpu_model=`lspci -s "${gpu_slot}" -mm -v | grep '^Device' | sed -e 's/Device:\t//' | sed -e 's/.*[ ]\[//;s/\].*//'`
-	gpu="${gpu_vendor} ${gpu_model}"
+	gpu="`lspci -mm -v | grep -m 1 -A 2 VGA | tail -n +2 | sed -e 's/Vendor:\t//;s/Device:\t//' | sed -e 's/.*[ ]\[//;s/\].*//' | sed -e 's/, Inc.//;s/ Corporation//;s/ Co.//;s/,Ltd.//' | tr '\n' ' ' | sed -e 's/ $//'`"
 fi
 
 #---[ OUTPUT ]------------------------
