@@ -10,7 +10,7 @@ uptime=`uptime | sed -e 's/[ ][ ]*/ /g;s/ [0-9:]* up \(.*\), [0-9]* user.*/\1/'`
 
 #--- [ MEMORY ] -----------------------
 mem_total=`cat /proc/meminfo | grep -i MemTotal | awk '{printf "%d",$2/1024;}'`
-mem_free=`free  | tail -n2 | head -n1 | sed 's/^.*://' | awk '{printf "%d",$2/1024;}'`
+mem_free=`cat /proc/meminfo | grep -i MemAvailable | awk '{printf "%d",$2/1024;}'`
 mem_used=`echo ${mem_total} ${mem_free} | awk '{printf "%d",$1-$2;}'`
 
 swap_total=`cat /proc/meminfo | grep -i SwapTotal | awk '{printf "%d",$2/1024;}'`
